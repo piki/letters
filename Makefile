@@ -1,5 +1,5 @@
 CFLAGS = -Wall -g -Werror
-LDLIBS = -lopenal -lalut
+LDLIBS = -lopenal -lalut -lSDL -lSDL_image -lSDL_ttf
 
 all: letters
 
