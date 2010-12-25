@@ -18,34 +18,13 @@ static int sndidx(char c) {
 }
 
 static int load_sound(char c) {
-	ALenum     format;
-	ALsizei    size;
-	ALsizei    freq;
-	ALboolean  loop;
-	ALvoid*    data;
 	char fn[8];
-	int error;
 	snprintf(fn, sizeof(fn), "%c.wav", c);
-	alutLoadWAVFile((ALbyte*)fn, &format, &data, &size, &freq, &loop);
+	buffers[sndidx(c)] = alutCreateBufferFromFile(fn);
+	int error;
 	if ((error = alGetError()) != AL_NO_ERROR) {
-		printf("alutLoadWAVFile \"%s\" : %d", fn, error);
+		printf("alutCreateBufferFromFile \"%s\" : %d", fn, error);
 		// Delete Buffers
-		alDeleteBuffers(NUM_BUFFERS, buffers);
-		return 0;
-	}
-
-	alBufferData(buffers[sndidx(c)],format,data,size,freq);
-	if ((error = alGetError()) != AL_NO_ERROR) {
-		printf("alBufferData buffer 0 : %d", error);
-		// Delete buffers
-		alDeleteBuffers(NUM_BUFFERS, buffers);
-		return 0;
-	}
-
-	alutUnloadWAV(format,data,size,freq);
-	if ((error = alGetError()) != AL_NO_ERROR) {
-		printf("alutUnloadWAV : %d", error);
-		// Delete buffers
 		alDeleteBuffers(NUM_BUFFERS, buffers);
 		return 0;
 	}
@@ -76,13 +55,6 @@ int main() {
 	alutInit(0, NULL);
 	// Clear Error Code (so we can catch any new errors)
 	alGetError();
-
-	// Create the buffers
-	alGenBuffers(NUM_BUFFERS, buffers);
-	if ((error = alGetError()) != AL_NO_ERROR) {
-		printf("alGenBuffers: %d", error);
-		return 0;
-	}
 
 	char c;
 	for (c='0'; c<='9'; c++) if (!load_sound(c)) return 0;

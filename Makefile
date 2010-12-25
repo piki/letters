@@ -1,4 +1,4 @@
-CFLAGS = -Wall -g #-Werror
+CFLAGS = -Wall -g -Werror
 LDLIBS = -lopenal -lalut
 
 all: letters
