@@ -1,0 +1,14 @@
+Author: Patrick Reynolds
+
+This program shows letters and numbers on the screen, full screen, and
+speaks them out loud in an old Speak 'n Spell voice.  It's for little
+kids.
+
+READ THIS: quit the program by hitting ^C (that's control + C).  The idea
+here is to make a sandbox that kids probably won't get out of by mistake.
+
+Required libraries:
+* OpenAL
+* alut
+* SDL_image
+* SDL_ttf
