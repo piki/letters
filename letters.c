@@ -21,8 +21,8 @@ static int sndidx(char c) {
 }
 
 static int load_sound(char c) {
-	char fn[8];
-	snprintf(fn, sizeof(fn), "%c.wav", c);
+	char fn[16];
+	snprintf(fn, sizeof(fn), "sounds/%c.wav", c);
 	buffers[sndidx(c)] = alutCreateBufferFromFile(fn);
 	int error;
 	if ((error = alGetError()) != AL_NO_ERROR) {
