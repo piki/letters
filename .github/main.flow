@@ -1,0 +1,4 @@
+task "ci" {
+  # Choose a CI provider
+  use = "travis"
+}
