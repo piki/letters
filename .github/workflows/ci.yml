@@ -1,0 +1,18 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: set up gcc
+      run: apt update && apt install --no-install-recommends -y make gcc libalut-dev libsdl-ttf2.0-dev libsdl-image1.2-dev
+
+    - name: Build
+      run: make
