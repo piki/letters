@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-
-use sdl2::{ttf::{self, Font}, pixels::Color, event::Event, keyboard::Mod, render::Canvas, video::Window, rect::{Rect, Point}, audio::{AudioSpecWAV, AudioSpecDesired, AudioQueue, AudioFormatNum}, Sdl};
+use std::time::Duration;
+use sdl2::{ttf::{self, Font}, pixels::Color, event::Event, keyboard::Mod, render::Canvas, video::Window, rect::{Rect, Point}, audio::{AudioSpecWAV, AudioSpecDesired}, Sdl};
 
 fn main() {
     let sdl = sdl2::init().unwrap();
@@ -9,7 +9,7 @@ fn main() {
     let ttf = ttf::init().unwrap();
     let font = ttf.load_font("font.ttf", 600).unwrap();
 
-    let (sounds, sound_queue) = init_audio(&sdl);
+    let sounds = init_audio();
 
     canvas.set_draw_color(Color::WHITE);
     canvas.clear();
@@ -38,8 +38,7 @@ fn main() {
                         // display and play sound for any letter or number
                         if c.is_alphanumeric() {
                             draw_letter(&mut canvas, &font, c);
-                            sound_queue.clear();
-                            sound_queue.queue_audio(sounds.get(&c.to_ascii_lowercase()).expect(&c.to_string()).buffer()).unwrap();
+                            play_sound(&sdl, sounds.get(&c).unwrap());
                         }
                     }
                 }
@@ -75,25 +74,27 @@ fn init_video(sdl: &Sdl) -> Canvas<Window> {
     window.into_canvas().build().unwrap()
 }
 
-fn init_audio<Channel>(sdl: &Sdl) -> (HashMap<char, AudioSpecWAV>, AudioQueue<Channel>)
-where
-    Channel: AudioFormatNum
-{
+fn init_audio() -> HashMap<char, AudioSpecWAV> {
     let mut sounds: HashMap<char, AudioSpecWAV> = HashMap::default();
     for c in ('a'..='z').chain('0'..='9') {
         let filename = format!("sounds/{c}.wav");
         sounds.insert(c, AudioSpecWAV::load_wav(filename).unwrap());
     }
-    let first_sound = sounds.values().next().unwrap();
+    println!("Loaded {} sounds", sounds.len());
 
+    sounds
+}
+
+fn play_sound(sdl: &Sdl, sound: &AudioSpecWAV) {
     let desired = AudioSpecDesired{
-        freq: Some(first_sound.freq),
-        channels: Some(first_sound.channels),
-        samples: Some(first_sound.format as u16)
+        freq: Some(sound.freq),
+        channels: Some(sound.channels),
+        samples: Some(sound.format as u16)
     };
     let audio = sdl.audio().unwrap();
     let sound_queue = audio.open_queue(None, &desired).unwrap();
+    sound_queue.queue_audio(sound.buffer()).unwrap();
     sound_queue.resume();
-
-    (sounds, sound_queue)
+    let audio_len = sound.buffer().len(); // bytes 
+    std::thread::sleep(Duration::from_millis(audio_len as u64 * 1000 / sound.freq as u64 / sound.channels as u64));
 }
