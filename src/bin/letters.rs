@@ -1,6 +1,5 @@
 use std::collections::HashMap;
-use std::time::Duration;
-use sdl2::{ttf::{self, Font}, pixels::Color, event::Event, keyboard::Mod, render::Canvas, video::Window, rect::{Rect, Point}, audio::{AudioSpecWAV, AudioSpecDesired}, Sdl};
+use sdl2::{ttf::{self, Font}, pixels::Color, event::Event, keyboard::Mod, render::Canvas, video::Window, rect::{Rect, Point}, audio::{AudioQueue, AudioSpecDesired, AudioSpecWAV}, Sdl};
 
 fn main() {
     let sdl = sdl2::init().unwrap();
@@ -14,6 +13,8 @@ fn main() {
     canvas.set_draw_color(Color::WHITE);
     canvas.clear();
     canvas.present();
+
+    let mut queue: Option<AudioQueue<u8>> = None;
 
     for event in sdl.event_pump().unwrap().wait_iter() {
         match event {
@@ -38,7 +39,7 @@ fn main() {
                         // display and play sound for any letter or number
                         if c.is_alphanumeric() {
                             draw_letter(&mut canvas, &font, c);
-                            play_sound(&sdl, sounds.get(&c).unwrap());
+                            queue = Some(play_sound(&sdl, sounds.get(&c).unwrap()));
                         }
                     }
                 }
@@ -47,7 +48,7 @@ fn main() {
         };
     }
 
-    println!("quit");
+    println!("quit: {}", queue.is_some());
 }
 
 fn draw_letter(canvas: &mut Canvas<Window>, font: &Font, c: char) {
@@ -85,7 +86,7 @@ fn init_audio() -> HashMap<char, AudioSpecWAV> {
     sounds
 }
 
-fn play_sound(sdl: &Sdl, sound: &AudioSpecWAV) {
+fn play_sound(sdl: &Sdl, sound: &AudioSpecWAV) -> AudioQueue<u8> {
     let desired = AudioSpecDesired{
         freq: Some(sound.freq),
         channels: Some(sound.channels),
@@ -95,6 +96,5 @@ fn play_sound(sdl: &Sdl, sound: &AudioSpecWAV) {
     let sound_queue = audio.open_queue(None, &desired).unwrap();
     sound_queue.queue_audio(sound.buffer()).unwrap();
     sound_queue.resume();
-    let audio_len = sound.buffer().len(); // bytes 
-    std::thread::sleep(Duration::from_millis(audio_len as u64 * 1000 / sound.freq as u64 / sound.channels as u64));
+    sound_queue
 }
